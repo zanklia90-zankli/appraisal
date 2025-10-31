@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useAppraisals } from '../hooks/useAppraisals';
@@ -14,10 +13,11 @@ interface AppraisalViewProps {
 }
 
 const AppraisalView: React.FC<AppraisalViewProps> = ({ appraisalId, onBack }) => {
-  const { profile, logout } = useAuth();
+  const { profile } = useAuth();
   const { getAppraisalDetails, approveAppraisal } = useAppraisals();
   const [appraisal, setAppraisal] = useState<AppraisalWithSignatures | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   
   const [comment, setComment] = useState('');
   const [error, setError] = useState('');
@@ -92,14 +92,27 @@ const AppraisalView: React.FC<AppraisalViewProps> = ({ appraisalId, onBack }) =>
           Back to Dashboard
         </button>
         <button
-          onClick={() => {
-            if (appraisal) {
-              downloadAsPdf(pdfId, `Appraisal-${appraisal.employee_name}-${appraisal.id}`, logout);
+          onClick={async () => {
+            if (appraisal && !isDownloading) {
+              setIsDownloading(true);
+              await downloadAsPdf(pdfId, `Appraisal-${appraisal.employee_name}-${appraisal.id}`);
+              setIsDownloading(false);
             }
           }}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-zankli-orange-600 text-white font-semibold rounded-lg hover:bg-zankli-orange-700 transition-colors shadow-sm"
+          disabled={isDownloading}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-zankli-orange-600 text-white font-semibold rounded-lg hover:bg-zankli-orange-700 transition-colors shadow-sm disabled:bg-zankli-orange-400 disabled:cursor-wait"
         >
-          <Download size={16} /> Download as PDF
+          {isDownloading ? (
+            <>
+              <LoaderCircle size={16} className="animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Download size={16} />
+              Download as PDF
+            </>
+          )}
         </button>
       </div>
 

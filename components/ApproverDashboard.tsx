@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useAppraisals } from '../hooks/useAppraisals';
@@ -10,7 +9,7 @@ import PrintableDepartmentSummary from './PrintableDepartmentSummary';
 import { Filter, Download, Search, LoaderCircle } from 'lucide-react';
 
 const ApproverDashboard: React.FC = () => {
-  const { profile, logout } = useAuth();
+  const { profile } = useAuth();
   const { appraisals, loading } = useAppraisals();
   const [selectedDept, setSelectedDept] = useState<Department | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,13 +47,13 @@ const ApproverDashboard: React.FC = () => {
     if (isPrinting) {
       const elementId = `print-summary-area-${isPrinting}`;
       setTimeout(() => {
-        downloadAsPdf(elementId, `Appraisal-Summary-${isPrinting}`, logout)
+        downloadAsPdf(elementId, `Appraisal-Summary-${isPrinting}`)
           .finally(() => {
             setIsPrinting(null);
           });
       }, 100); 
     }
-  }, [isPrinting, logout]);
+  }, [isPrinting]);
 
   if (!profile) return null;
 
@@ -140,7 +139,7 @@ const ApproverDashboard: React.FC = () => {
        
       {isPrinting && groupedByDepartment[isPrinting] && (
           <div className="absolute top-0 -left-[9999px]" aria-hidden="true">
-              <div id={`print-summary-area-${isPrinting}`} className="bg-white" style={{ width: '11in' }}>
+              <div id={`print-summary-area-${isPrinting}`} className="bg-white" style={{ width: '794px' }}>
                   <PrintableDepartmentSummary
                     department={isPrinting}
                     appraisals={groupedByDepartment[isPrinting] as Appraisal[]}

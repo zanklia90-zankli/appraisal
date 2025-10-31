@@ -1,7 +1,7 @@
 declare const html2canvas: any;
 declare const jspdf: any;
 
-export const downloadAsPdf = async (elementId: string, filename: string, logout: () => Promise<void>): Promise<void> => {
+export const downloadAsPdf = async (elementId: string, filename: string): Promise<void> => {
   const { jsPDF } = jspdf;
   const element = document.getElementById(elementId);
   if (!element) {
@@ -16,11 +16,7 @@ export const downloadAsPdf = async (elementId: string, filename: string, logout:
     const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        logging: true,
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
+        logging: false,
     });
     
     const imgData = canvas.toDataURL('image/png');
@@ -52,8 +48,6 @@ export const downloadAsPdf = async (elementId: string, filename: string, logout:
   } catch (error) {
     console.error('Error generating PDF:', error);
   } finally {
-    // Restore element style and log out as requested to prevent UI freeze.
     element.style.display = originalDisplay;
-    await logout();
   }
 };
