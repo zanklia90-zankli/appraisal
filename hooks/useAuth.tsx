@@ -19,51 +19,64 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    // This flag ensures we ignore the initial session restoration event from Supabase.
+    let isInitialLoad = true;
+
+    // Force a sign-out on every page load and synchronously update the state.
+    // This provides an immediate UI update to show the login screen without a spinner.
+    supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setLoading(false);
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
+      // The first event fired by the listener on page load is from automatic session
+      // restoration. We must ignore it to prevent it from overriding our forced logout.
+      if (isInitialLoad) {
+        isInitialLoad = false;
+        return;
+      }
 
-      if (currentUser) {
+      // After the initial load, we handle user-initiated events normally.
+      if (event === 'SIGNED_IN' && session?.user) {
+        setLoading(true);
+        const currentUser = session.user;
         const { data: profileData, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', currentUser.id)
           .single();
-        
-        // This is the key fix: if a user is authenticated but we can't fetch their profile
-        // (e.g., due to a missing RLS policy), we must log them out to prevent an infinite loading state.
+
         if (error || !profileData) {
-           console.error('Authenticated user has no profile. Logging out.', error);
-           await supabase.auth.signOut();
-           setProfile(null);
-           // The signOut will trigger another onAuthStateChange, which will handle setting loading to false.
+          console.error('Login successful but profile fetch failed. Logging out.', error);
+          await supabase.auth.signOut(); // This will trigger the 'SIGNED_OUT' event.
         } else {
-           setProfile(profileData);
-           setLoading(false);
+          setUser(currentUser);
+          setProfile(profileData);
         }
-      } else {
-        // No user, clear profile and ensure loading is stopped.
+        setLoading(false);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
         setProfile(null);
         setLoading(false);
       }
     });
 
-    // Cleanup subscription on unmount
+    // Cleanup subscription on component unmount
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, []); // The empty dependency array ensures this runs only once on mount.
   
   const login = async (email: string, pass: string) => {
+    // The onAuthStateChange listener will handle setting user/profile state upon success.
     const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
     return { error };
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
     // The onAuthStateChange listener will handle clearing user/profile state.
+    await supabase.auth.signOut();
   };
 
   return (

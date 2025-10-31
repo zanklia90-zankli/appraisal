@@ -52,7 +52,7 @@ export const AppraisalProvider: React.FC<{ children: ReactNode }> = ({ children 
       if (!user) throw new Error("User not authenticated");
 
       const signatureBlob = dataUrlToBlob(signatureDataUrl);
-      const filePath = `public/${user.id}-${Date.now()}.png`;
+      const filePath = `${user.id}-${Date.now()}.png`;
 
       // 1. Upload signature
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -99,7 +99,7 @@ export const AppraisalProvider: React.FC<{ children: ReactNode }> = ({ children 
 
      try {
         const signatureBlob = dataUrlToBlob(signatureDataUrl);
-        const filePath = `public/${user.id}-approval-${Date.now()}.png`;
+        const filePath = `${user.id}-approval-${Date.now()}.png`;
 
         // 1. Upload signature
         const { data: uploadData, error: uploadError } = await supabase.storage
