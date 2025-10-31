@@ -25,8 +25,6 @@ export enum Department {
   INTERNAL_AUDIT = 'INTERNAL AUDIT',
   ACCOUNTS = 'ACCOUNTS',
   PAEDIATRICS = 'PAEDIATRICS',
-  PHARMACY = 'PHARMACY',
-  ICT = 'ICT',
 }
 
 // Matches the 'appraisal_status' enum in Supabase
